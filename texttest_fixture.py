@@ -2,83 +2,43 @@
 from __future__ import print_function
 import unittest
 from copy import deepcopy
-from gilded_rose import GildedRose, Item
+from gilded_rose import GildedRose, AddItem
 
 
 class GildedRoseSimulationTest(unittest.TestCase):        
 
-    def simulate_days(self, days, initial_items, expected_results_day):
+    def simulate_days(self, days, items, expected_results_day):
         print(f"📦 Running simulation for {days} day...\n")
-        items = deepcopy(initial_items)
         gr = GildedRose(items)
 
         for _ in range(days):
-            gr.update_quality()
-
-        # Mapping for easier matching
-        name_map = {
-            "+5 Dexterity Vest": "+5 Dexterity Vest",
-            "Aged Brie": "Aged Brie",
-            "Elixir of the Mongoose": "Elixir of the Mongoose",
-            "Sulfuras, Hand of Ragnaros": "Sulfuras, Hand of Ragnaros",
-            "Sulfuras, Hand of Ragnaros (negative)": "Sulfuras, Hand of Ragnaros",
-            "Backstage 15 days": "Backstage passes to a TAFKAL80ETC concert",
-            "Backstage 10 days": "Backstage passes to a TAFKAL80ETC concert",
-            "Backstage 5 days": "Backstage passes to a TAFKAL80ETC concert",
-            "Conjured Mana Cake": "Conjured Mana Cake",
-        }
-
-        # Disambiguate duplicate names for matching
-        used = {}
+            gr.update_quality()        
+       
         for item in items:
-            for key, name in name_map.items():
-                if item.name == name and key not in used:
-                    expected = expected_results_day[key]
-                    with self.subTest(item=item.name, key=key):
-                        print(f"🔍 Testing {key}")
-                        print(f"   Expected: sell_in={expected['sell_in']}, quality={expected['quality']}")
-                        print(f"   Actual:   sell_in={item.sell_in}, quality={item.quality}")
-                        try:
-                            self.assertEqual(item.sell_in, expected["sell_in"], f"SellIn mismatch for {key}")
-                            self.assertEqual(item.quality, expected["quality"], f"Quality mismatch for {key}")
-                            print(" ✅ Test passed.\n")
-                        except AssertionError as e:
-                            print(" ❌ Test failed.\n")
-                        used[key] = True
-                        break
-
-
-
+            expected = expected_results_day[item.name]
+            print(f"🔍 Testing {item.name}")
+            print(f"   Expected: sell_in={expected['sell_in']}, quality={expected['quality']}")
+            print(f"   Actual:   sell_in={item.sell_in}, quality={item.quality}")
+            try:
+                self.assertEqual(item.sell_in, expected["sell_in"], f"SellIn mismatch for {item.name}")
+                self.assertEqual(item.quality, expected["quality"], f"Quality mismatch for {item.name}")
+                print(" ✅ Test passed.\n")
+            except AssertionError as e:
+                print(" ❌ Test failed.\n")
+            
 def main():
     # Original items
     initial_items = [
-                        Item(name="+5 Dexterity Vest", sell_in=10, quality=20),
-                        Item(name="Aged Brie", sell_in=2, quality=0),
-                        Item(name="Elixir of the Mongoose", sell_in=5, quality=7),
-                        Item(name="Sulfuras, Hand of Ragnaros", sell_in=0, quality=80),
-                        Item(name="Sulfuras, Hand of Ragnaros (negative)", sell_in=-1, quality=80),
-                        Item(name="Backstage passes to a TAFKAL80ETC concert", sell_in=15, quality=20),
-                        Item(name="Backstage passes to a TAFKAL80ETC concert", sell_in=10, quality=49),
-                        Item(name="Backstage passes to a TAFKAL80ETC concert", sell_in=5, quality=49),
-                        Item(name="Conjured Mana Cake", sell_in=3, quality=6),
+                        AddItem(name="Normal", sell_in=10, quality=20), #Normal Item - Quality decreases, Once the sell by date has passed, Quality degrades twice as fast
+                        AddItem(name="Aged Brie", sell_in=5, quality=0), #Aged Brie - increases in Quality the older it gets
+                        AddItem(name="Sulfuras", sell_in=0, quality=80), #never has to be sold or decreases in Quality
+                        AddItem(name="Backstage passes", sell_in=15, quality=15),
+                        AddItem(name="Conjured", sell_in=10, quality=40),
                     ]
 
 
-    # Expected values after 1 day
-    expected_results_day_1 = {
-                                "+5 Dexterity Vest": {"sell_in": 9, "quality": 19},  # -1 sell_in, -1 quality
-                                "Aged Brie": {"sell_in": 1, "quality": 1},           # +1 quality (max 50)
-                                "Elixir of the Mongoose": {"sell_in": 4, "quality": 6},
-                                "Sulfuras, Hand of Ragnaros": {"sell_in": 0, "quality": 80},          # No change
-                                "Sulfuras, Hand of Ragnaros (negative)": {"sell_in": -1, "quality": 80},        # No change
-                                "Backstage 15 days": {"sell_in": 14, "quality": 21},       # >10 days left, +1
-                                "Backstage 10 days": {"sell_in": 9, "quality": 50},        # 10 or less, +2 → capped at 50
-                                "Backstage 5 days": {"sell_in": 4, "quality": 50},         # 5 or less, +3 → capped at 50
-                                "Conjured Mana Cake": {"sell_in": 2, "quality": 4},            # -2 quality (double decay)
-                            }
-
-    # Expected results after 10 days
-        # After 10 days simulation, we apply rules like:
+    # Expected results after X days
+        # After X days simulation, we apply rules like:
         # Normal items: -1 quality/day; after sell-in, -2/day.
         # Conjured items: -2/day; after sell-in, -4/day.
         # Aged Brie: +1/day; after sell-in, +2/day.
@@ -86,32 +46,82 @@ def main():
             # +1 (>10 days)
             # +2 (10–6 days)
             # +3 (5–1 days)
-
+            # 0 after sell-in
         # Drop to 0 at sell-in 0 or less.
-    expected_results_day_10 = {
-                                "+5 Dexterity Vest": {"sell_in": 0, "quality": 10},  # -1/day
-                                "Aged Brie": {"sell_in": -8, "quality": 18},         # 2 days +1, 8 days +2 → 18
-                                "Elixir of the Mongoose": {"sell_in": -5, "quality": 0},  # Decays to 0
-                                "Sulfuras, Hand of Ragnaros": {"sell_in": 0, "quality": 80},
-                                "Sulfuras, Hand of Ragnaros (negative)": {"sell_in": -1, "quality": 80},
-                                "Backstage 15 days": {"sell_in": 5, "quality": 35},  # Days: +1, +1, +1, +2, +2, +2, +2, +3, +3, +3 = +15
-                                "Backstage 10 days": {"sell_in": 0, "quality": 0},   # Day 10 ends with sell_in=0 → drops to 0
-                                "Backstage 5 days": {"sell_in": -5, "quality": 0},   # Passed sell-in, quality = 0
-                                "Conjured Mana Cake": {"sell_in": -7, "quality": 0},     # 3 days: -2; 7 days: -4 → reaches 0
+
+    # Expected values after 1 day
+    expected_results_day_1 = {
+                                "Normal": {"sell_in": 9, "quality": 19},  # -1 sell_in, -1 quality
+                                "Aged Brie": {"sell_in": 4, "quality": 1}, # -1 sell_in,+1 quality (max 50)
+                                "Sulfuras": {"sell_in": 0, "quality": 80}, # No change
+                                "Backstage passes": {"sell_in": 14, "quality": 16}, # -1 sell_in, >10 days left -> +1
+                                "Conjured": {"sell_in": 9, "quality": 38}, # -1 sell_in, +2 quality (max 50)
                             }
 
-    print("🔁 Starting Gilded Rose Simulation Tests\n")
+    
+    expected_results_day_5 = {
+                                "Normal": {"sell_in": 5, "quality": 15},  # -1 sell_in, -1 quality
+                                "Aged Brie": {"sell_in": 0, "quality": 5}, # -1 sell_in,+1 quality (max 50)
+                                "Sulfuras": {"sell_in": 0, "quality": 80}, # No change
+                                "Backstage passes": {"sell_in": 10, "quality": 21}, # -1 sell_in, >10 days left -> +1
+                                "Conjured": {"sell_in": 5, "quality": 30}, # -1 sell_in, +2 quality (max 50)
+                            }
+    
+    expected_results_day_10 = {
+                                "Normal": {"sell_in": 0, "quality": 10},  # -1 sell_in, -1 quality
+                                "Aged Brie": {"sell_in": -5, "quality": 15}, # -1 sell_in,+1 quality (max 50)
+                                "Sulfuras": {"sell_in": 0, "quality": 80}, # No change
+                                "Backstage passes": {"sell_in": 5, "quality": 32}, # -1 sell_in, >10 days left -> +1
+                                "Conjured": {"sell_in": 0, "quality": 20}, # -1 sell_in, +2 quality (max 50)
+                            }
 
+    expected_results_day_15 = {
+                                "Normal": {"sell_in": -5, "quality": 0},  # -1 sell_in, -1 quality
+                                "Aged Brie": {"sell_in": -10, "quality": 25}, # -1 sell_in,+1 quality (max 50)
+                                "Sulfuras": {"sell_in": 0, "quality": 80}, # No change
+                                "Backstage passes": {"sell_in": 0, "quality": 47}, # -1 sell_in, >10 days left -> +1
+                                "Conjured": {"sell_in": -5, "quality": 0}, # -1 sell_in, +2 quality (max 50)
+                            }
+    
+    expected_results_day_20 = {
+                                "Normal": {"sell_in": -10, "quality": 0},  # -1 sell_in, -1 quality
+                                "Aged Brie": {"sell_in": -15, "quality": 35}, # -1 sell_in,+1 quality (max 50)
+                                "Sulfuras": {"sell_in": 0, "quality": 80}, # No change
+                                "Backstage passes": {"sell_in": -5, "quality": 0}, # -1 sell_in, >10 days left -> +1
+                                "Conjured": {"sell_in": -10, "quality": 0}, # -1 sell_in, +2 quality (max 50)
+                            }
+    
+    print("\n 🔁 Starting Gilded Rose Simulation Tests\n")
     simObj = GildedRoseSimulationTest()
 
-    # Run simulations
-    print("*************** 📦 Running Day 1 Simulation *****************\n")
-    simObj.simulate_days(1, initial_items, expected_results_day_1)
 
-    print("***************  📦 Running Day 10 Simulation ***************\n")
-    simObj.simulate_days(10, initial_items, expected_results_day_10)
+    # Menu-driven Test simulation
+    print("Choose a simulation to run:")
+    print("1. Run Simulation test for 1 day")
+    print("2. Run Simulation test for 5 days")
+    print("3. Run Simulation test for 10 days")
+    print("4. Run Simulation test for 20 days")
+    print("Enter your choice:")
 
-    print("✅ All simulations complete.\n")
+    choice = input().strip()
+
+    if choice == "1":
+        print("*************** 📦 Running Day 1 Simulation *****************\n")
+        simObj.simulate_days(1, initial_items, expected_results_day_1)
+    elif choice == "2":
+        print("*************** 📦 Running Day 5 Simulation *****************\n")
+        simObj.simulate_days(5, initial_items, expected_results_day_5)
+    elif choice == "3":
+        print("*************** 📦 Running Day 10 Simulation *****************\n")
+        simObj.simulate_days(10, initial_items, expected_results_day_10)
+    elif choice == "4":
+        print("*************** 📦 Running Day 20 Simulation *****************\n")
+        simObj.simulate_days(20, initial_items, expected_results_day_20)
+    else:
+        print("Invalid choice! ..\n")
+
+    print("✅ simulations complete.\n")
+
 
 
 if __name__ == '__main__':

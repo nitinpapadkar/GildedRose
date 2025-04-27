@@ -17,7 +17,7 @@ class GildedRose(object):
 class ItemQualityRules:
     @staticmethod
     def apply_limits(item):
-        if item.name != "Sulfuras, Hand of Ragnaros":
+        if not item.name.lower().startswith("sulfuras"):
             # Ensure quality is within [0, 50] for all items except Sulfuras
             item.quality = max(0, min(50, item.quality))
         else:
@@ -37,11 +37,12 @@ class ItemUpdater:
 # Handles generic item update logic
 class NormalItemUpdater(ItemUpdater):
     def update(self):
-        self._decrease_quality()
         self.item.sell_in -= 1  # Reduce days remaining
         if self.item.sell_in < 0:
             # Degrade quality twice as fast after sell_in date
-            self._decrease_quality()
+            self._decrease_quality(2)
+        else:            
+            self._decrease_quality(1)
 
     def _decrease_quality(self, factor=1):
         self.item.quality -= factor
@@ -50,32 +51,34 @@ class NormalItemUpdater(ItemUpdater):
 # "Aged Brie" increases in quality the older it gets
 class AgedBrieUpdater(ItemUpdater):
     def update(self):
-        self._increase_quality()
         self.item.sell_in -= 1
         if self.item.sell_in < 0:
             # Increases quality twice as fast after sell_in date
-            self._increase_quality()
+            self._increase_quality(2)
+        else:
+            self._increase_quality(1)
 
-    def _increase_quality(self):
-        self.item.quality += 1
+    def _increase_quality(self, factor=1):
+        self.item.quality += factor
 
 
 # "Backstage passes" increase in quality with proximity to sell_in date
 class BackstagePassUpdater(ItemUpdater):
     def update(self):
-        if self.item.sell_in <= 0:
+        self.item.sell_in -= 1
+        if self.item.sell_in < 0:
             # After concert, quality drops to 0
             self.item.quality = 0
         else:
-            self._increase_quality()
-            if self.item.sell_in <= 10:
-                self._increase_quality()
             if self.item.sell_in <= 5:
-                self._increase_quality()
-        self.item.sell_in -= 1
+                self._increase_quality(3)
+            elif self.item.sell_in <= 10:
+                self._increase_quality(2)
+            else:
+                self._increase_quality(1)
 
-    def _increase_quality(self):
-        self.item.quality += 1
+    def _increase_quality(self, factor=1):
+        self.item.quality += factor
 
 
 # "Sulfuras" is legendary and does not change
@@ -87,10 +90,11 @@ class SulfurasUpdater(ItemUpdater):
 # "Conjured" items degrade in quality twice as fast as normal items
 class ConjuredItemUpdater(ItemUpdater):
     def update(self):
-        self._decrease_quality(2)
         self.item.sell_in -= 1
         if self.item.sell_in < 0:
             # After sell_in, degrade 4 per day
+            self._decrease_quality(4)
+        else:
             self._decrease_quality(2)
 
     def _decrease_quality(self, factor):
@@ -102,11 +106,11 @@ class ItemUpdaterFactory:
     @staticmethod
     def get_updater(item):
         name = item.name
-        if name == "Aged Brie":
+        if name.lower().startswith("aged brie"):
             return AgedBrieUpdater(item)
-        elif name == "Backstage passes to a TAFKAL80ETC concert":
+        elif name.lower().startswith("backstage passes"):
             return BackstagePassUpdater(item)
-        elif name == "Sulfuras, Hand of Ragnaros":
+        elif name.lower().startswith("sulfuras"):
             return SulfurasUpdater(item)
         elif name.lower().startswith("conjured"):
             return ConjuredItemUpdater(item)
@@ -123,3 +127,25 @@ class Item:
 
     def __repr__(self):
         return "%s, %s, %s" % (self.name, self.sell_in, self.quality)
+
+
+class AddItem:
+    def __init__(self, name, sell_in, quality):
+        print(f'''Adding item (name: {name}, sell_in: {sell_in}, quality: {quality})''')
+        if quality < 0:
+            raise ValueError(f"Quality cannot be negative: {quality}")
+        
+        if name.lower().startswith("sulfuras") and quality > 80:
+            raise ValueError(f"Quality cannot be more than 80 for Sulfuras: {quality}")
+        elif not name.lower().startswith("sulfuras") and quality > 50:
+            raise ValueError(f"Quality cannot be more than 50 for non Sulfuras item: {quality}")
+        else:
+            self.item = Item(name, sell_in, quality)  # create  Item
+
+
+    def __getattr__(self, attr):
+        # Delegate all other attributes to the underlying Item
+        return getattr(self.item, attr)
+
+    def __repr__(self):
+        return repr(self.item)
