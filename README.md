@@ -100,4 +100,5 @@ Improve simulation menu for more flexible testing.
 
 # 🙏 Credits
 Original problem: Gilded Rose Kata by Emily Bache
+
 Refactoring & enhancement: Nitin Papadkar
