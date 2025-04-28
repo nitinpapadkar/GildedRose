@@ -1,7 +1,8 @@
-📦 Gilded Rose Refactored
+# 📦 Gilded Rose 
+
 This project is a refactored solution for the classic Gilded Rose Kata, demonstrating clean code, design patterns, and robust item quality management.
 
-📋 Problem Statement
+# 📋 Problem Statement
 In the Gilded Rose store, items have a sell_in (days remaining to sell) and quality value.
 Every day:
 
@@ -19,7 +20,8 @@ Quality is always between 0 and 50 (except Sulfuras, which has fixed 80).
 
 Quality never becomes negative.
 
-🛠️ Technologies Used
+# 🛠️ Technologies Used
+
 Python 3
 
 OOP Design (classes, abstraction)
@@ -32,20 +34,20 @@ Factory Pattern (item updater selection)
 
 Wrapper Pattern (input validation)
 
-🧩 Project Structure
+# 🧩 Project Structure
 
 File	Purpose
 gilded_rose_refactored.py	Main code handling item updates, rules enforcement, and validation
 tests/	(Optional) Unit tests to validate functionality
 
-🧠 Key Design Concepts
+# 🧠 Key Design Concepts
 Strategy Pattern: Each item type (Normal, Aged Brie, Backstage Passes, Sulfuras, Conjured) has its own updater class.
 
 Factory Pattern: ItemUpdaterFactory selects the right updater dynamically.
 
 Wrapper Class: AddItem ensures quality and constraints are validated when items are created.
 
-🧠 Design Explanation
+# 🧠 Design Explanation
 In this implementation, I designed a modular, extendable system to manage item behaviors for the Gilded Rose Inventory Management problem.
 The goal was to separate concerns, apply design patterns, and enforce data integrity while keeping the system flexible for future changes.
 
@@ -74,11 +76,11 @@ SOLID Principles:
 The design particularly follows the Open/Closed Principle —
 To add a new item type, simply create a new updater class without modifying existing code.
 
-✨ Summary:
+# ✨ Summary:
 This design makes the system scalable, testable, and easy to maintain as business rules evolve.
 
 
-▶️ How to Run
+# ▶️ How to Run
 bash
 Copy
 Edit
@@ -87,15 +89,15 @@ git clone https://github.com/nitinpapadkar/GildedRose.git
 cd GildedRose
 
 # Run the Python script
-python3 gilded_rose_refactored.py
+python3 gilded_rose.py
 
-✅ Future Improvements
+# ✅ Future Improvements
 Add automated unit tests using unittest or pytest.
 
 Extend support for more special items.
 
 Improve simulation menu for more flexible testing.
 
-🙏 Credits
+# 🙏 Credits
 Original problem: Gilded Rose Kata by Emily Bache
 Refactoring & enhancement: Nitin Papadkar
