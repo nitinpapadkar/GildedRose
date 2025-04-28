@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import unittest
-from copy import deepcopy
 from gilded_rose import GildedRose, AddItem
 
 
