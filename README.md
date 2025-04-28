@@ -1,32 +1,101 @@
-# Gilded Rose starting position in Python
+📦 Gilded Rose Refactored
+This project is a refactored solution for the classic Gilded Rose Kata, demonstrating clean code, design patterns, and robust item quality management.
 
-For exercise instructions see [top level README](../README.md)
+📋 Problem Statement
+In the Gilded Rose store, items have a sell_in (days remaining to sell) and quality value.
+Every day:
 
-Suggestion: create a python virtual environment for this project. See the [documentation](https://docs.python.org/3/library/venv.html)
+sell_in decreases by 1.
 
-## Run the unit tests from the Command-Line
+quality generally degrades, except for special items like "Aged Brie" and "Backstage Passes".
 
-```
-python test_gilded_rose.py
-```
+"Sulfuras" is a legendary item that never changes.
 
-## Run the TextTest fixture from the Command-Line
+"Conjured" items degrade twice as fast.
 
-For e.g. 10 days:
+The business rules require:
 
-```
-python texttest_fixture.py 10
-```
+Quality is always between 0 and 50 (except Sulfuras, which has fixed 80).
 
-You should make sure the command shown above works when you execute it in a terminal before trying to use TextTest (see below).
+Quality never becomes negative.
+
+🛠️ Technologies Used
+Python 3
+
+OOP Design (classes, abstraction)
+
+Design Patterns:
+
+Strategy Pattern (different item behaviors)
+
+Factory Pattern (item updater selection)
+
+Wrapper Pattern (input validation)
+
+🧩 Project Structure
+
+File	Purpose
+gilded_rose_refactored.py	Main code handling item updates, rules enforcement, and validation
+tests/	(Optional) Unit tests to validate functionality
+
+🧠 Key Design Concepts
+Strategy Pattern: Each item type (Normal, Aged Brie, Backstage Passes, Sulfuras, Conjured) has its own updater class.
+
+Factory Pattern: ItemUpdaterFactory selects the right updater dynamically.
+
+Wrapper Class: AddItem ensures quality and constraints are validated when items are created.
+
+🧠 Design Explanation
+In this implementation, I designed a modular, extendable system to manage item behaviors for the Gilded Rose Inventory Management problem.
+The goal was to separate concerns, apply design patterns, and enforce data integrity while keeping the system flexible for future changes.
+
+Main Orchestration:
+The GildedRose class drives the update process without hardcoding item logic.
+
+Strategy Pattern:
+Each item type has its own updater class — like NormalItemUpdater, AgedBrieUpdater, and BackstagePassUpdater — encapsulating its unique business rules.
+
+Factory Pattern:
+ItemUpdaterFactory selects the correct updater dynamically based on item name, keeping update_quality clean and open for extension.
+
+Global Quality Rules:
+ItemQualityRules ensures that item quality stays within allowed limits globally (e.g., [0–50] for most items, exactly 80 for Sulfuras).
+
+Input Validation:
+AddItem wrapper ensures no invalid items are added. It enforces:
+
+No negative quality
+
+Sulfuras must have a quality of exactly 80
+
+No item quality exceeds 50 unless it's Sulfuras
+
+SOLID Principles:
+The design particularly follows the Open/Closed Principle —
+To add a new item type, simply create a new updater class without modifying existing code.
+
+✨ Summary:
+This design makes the system scalable, testable, and easy to maintain as business rules evolve.
 
 
-## Run the TextTest approval test that comes with this project
+▶️ How to Run
+bash
+Copy
+Edit
+# Clone the repo
+git clone https://github.com/nitinpapadkar/GildedRose.git
+cd GildedRose
 
-There are instructions in the [TextTest Readme](../texttests/README.md) for setting up TextTest. You will need to specify the Python executable and interpreter in [config.gr](../texttests/config.gr). Uncomment these lines:
+# Run the Python script
+python3 gilded_rose_refactored.py
 
-    executable:${TEXTTEST_HOME}/python/texttest_fixture.py
-    interpreter:python
+✅ Future Improvements
+Add automated unit tests using unittest or pytest.
 
-Test Data:
-![image](https://github.com/user-attachments/assets/44d511cb-c081-406c-9378-4c16e1297544)
+Extend support for more special items.
+
+Improve simulation menu for more flexible testing.
+
+🙏 Credits
+Original problem: Gilded Rose Kata by Emily Bache
+Refactoring & enhancement: Nitin Papadkar
